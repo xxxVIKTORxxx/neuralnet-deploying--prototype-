@@ -81,7 +81,7 @@ def NN_draw(NN):
 
 
 
-# neuralnet example to be drawed
+# neuralnet example to be drawn
 layer_in = [n for n in range(0,4)]
 layer_h1 = [n for n in range(0,5)]
 layer_h2 = [n for n in range(0,3)]
