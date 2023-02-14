@@ -24,12 +24,9 @@ def NN_draw(NN):
     x_space = 375
     distance_y = y_space / len(NN)
 
-    neuron_stage = 'active'
-    if neuron_stage == 'active':
-        neuron_color = 'red'
-
     radius = 15
 
+    #coordinates
     nn_coords = []
     for layer in NN:
         n_num = 0
@@ -44,23 +41,22 @@ def NN_draw(NN):
                 radius = (distance_x - radius)*1.33
             n_num +=1
             c_x += distance_x
-            pygame.draw.circle(screen, 'green', [c_x,c_y], radius)
-            pygame.draw.circle(screen, neuron_color, [c_x,c_y], radius-5)
             nn_layer_coords.append([c_x, c_y])
 
-
+    # line activity
     line = 'active'
     rand_line_col = 0
     if line == 'active':
         if int(pygame.time.get_ticks() / 100) % 3 == 0:
             rand_line_col = randint(0,1)
         if rand_line_col == 0:
-            line_color = 'white'
+            line_color = 'darkblue'
         elif rand_line_col ==1:
             line_color = 'yellow'
     elif line == 'inactive':
-        line_color = 'white'
+        line_color = 'darkblue'
 
+    #lines drawing
     i=0
     while i < len(nn_coords)-1:
         for coord in nn_coords[i]:
@@ -68,7 +64,20 @@ def NN_draw(NN):
                 pygame.draw.line(screen, line_color, coord, next_coord, width = 3)
         i+=1
 
- 
+    #   neuron activity
+    rand_neuron_act = 0
+    if int(pygame.time.get_ticks() / 100) % 3 == 0:
+        rand_neuron_act = randint(0,1)
+    if rand_neuron_act == 0:
+        neuron_color = 'red'
+    elif rand_neuron_act == 1:
+        neuron_color = 'yellow'
+
+    # neurons drawing
+    for layer in nn_coords:
+        for coord in layer:
+            pygame.draw.circle(screen, 'green', coord, radius)
+            pygame.draw.circle(screen, neuron_color, coord, radius-5)
 
 
 
