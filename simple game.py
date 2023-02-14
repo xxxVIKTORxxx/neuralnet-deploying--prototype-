@@ -1,7 +1,6 @@
 import pygame
 from pygame.locals import *
 from random import randint
-import numpy as np
 
 SIZE = 1200, 600
 act_SIZE = 600, 600
