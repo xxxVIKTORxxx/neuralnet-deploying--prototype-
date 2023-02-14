@@ -32,7 +32,7 @@ def NN_draw(NN):
         n_num = 0
         c_y += distance_y
         distance_x = x_space / len(layer)
-        c_x = -distance_x + 50
+        c_x = -distance_x + distance_x/2 + 10
         nn_layer_coords = []
         nn_coords.append(nn_layer_coords)
         for neuron in layer:
