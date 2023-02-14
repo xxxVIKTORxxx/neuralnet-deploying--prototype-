@@ -81,19 +81,7 @@ def NN_draw(NN):
 
 
 
-
-""" i=0
-    for layer_coords in nn_coords:
-
-        for coord in layer_coords:
-            pygame.draw.lines(screen, 'white', coord, [coord for coord in [
-                layer_coords for layer_coords in nn_coords[i]
-                ]])
-        i-=1    
-        """
-
-
-
+# neuralnet example to be drawed
 layer_in = [n for n in range(0,4)]
 layer_h1 = [n for n in range(0,5)]
 layer_h2 = [n for n in range(0,3)]
