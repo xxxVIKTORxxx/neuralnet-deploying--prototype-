@@ -7,7 +7,7 @@ Experimentations with NN deploying
 
 ___
 In plans:
-* Deploy a reinforced learning neuralnet
+* Deploy a reinforcement learning neuralnet
 * Connect it with the drawn neuralnet for its working visualisation
 * Add an epochs counts text somewhere
 * Add loss and accuracy chart at left side somewhere
