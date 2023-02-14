@@ -3,7 +3,7 @@ from pygame.locals import *
 from random import randint
 
 SIZE = 1200, 600
-act_SIZE = 600, 600
+
 RED = (255, 0, 0)
 
 
