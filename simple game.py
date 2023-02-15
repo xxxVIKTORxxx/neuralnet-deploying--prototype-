@@ -28,6 +28,7 @@ def NN_draw(NN):
 
     #coordinates
     nn_coords = []
+    radiuses = []
     for layer in NN:
         n_num = 0
         c_y += distance_y
@@ -36,12 +37,13 @@ def NN_draw(NN):
         nn_layer_coords = []
         nn_coords.append(nn_layer_coords)
         for neuron in layer:
-            radius = 15
+            radius1 = 10
             if distance_x < 30:
-                radius = (distance_x - radius)*1.33
+                radius1 = (distance_x - radius1)
             n_num +=1
             c_x += distance_x
             nn_layer_coords.append([c_x, c_y])
+            radiuses.append(radius1)
 
     # line activity
     line = 'active'
@@ -74,17 +76,19 @@ def NN_draw(NN):
         neuron_color = 'yellow'
 
     # neurons drawing
+    i=0
     for layer in nn_coords:
-        for coord in layer:
-            pygame.draw.circle(screen, 'green', coord, radius)
-            pygame.draw.circle(screen, neuron_color, coord, radius-5)
+        for coords in layer:
+            pygame.draw.circle(screen, 'green', coords, [radius for radius in radiuses][i]+2)
+            pygame.draw.circle(screen, neuron_color, coords, [radius for radius in radiuses][i])
+            i+=1
 
 
 
 # neuralnet example to be drawn
 layer_in = [n for n in range(0,4)]
-layer_h1 = [n for n in range(0,5)]
-layer_h2 = [n for n in range(0,3)]
+layer_h1 = [n for n in range(0,25)]
+layer_h2 = [n for n in range(0,23)]
 layer_out = [n for n in range(0,4)]
 NN = layer_in,layer_h1,layer_h2,layer_out       
 neuron_stage = 'inactive'
