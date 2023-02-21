@@ -38,11 +38,9 @@ def ai_move():
         if check == 1:
             if rect_target.centerx > rect.centerx:
                 a_x += 2
-                print(a_x)
                 return a_x
             elif rect_target.centerx < rect.centerx:
                 a_x -= 2
-                print(a_x)
                 return a_x
             
         elif check == 2:
