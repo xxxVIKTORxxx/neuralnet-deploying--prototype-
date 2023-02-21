@@ -4,6 +4,7 @@ Experimentations with NN deploying
 >>> <b>[In Development]</b>
 
 * Function for neuralnet variable drawing created
+* Scripted AI with AI control added
 
 ___
 In plans:
