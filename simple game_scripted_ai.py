@@ -162,6 +162,23 @@ print(f'center={rect.center}')
 score = 0
 rewards = 0
 
+def start():
+    global a_x
+    global a_y
+    global target_x
+    global target_y
+    global rect
+    global rect_target
+    global life_length
+    a_x = randint(420,1100)
+    a_y = randint(50,500)
+    target_x = randint(450,1100)
+    target_y = randint(50,500)
+    rect = Rect(a_x, a_y, 100, 100)
+    rect_target = Rect(target_x, target_y, 55, 55)
+    life_length = 1000
+
+control = 'scripted_ai'
 
 # while True
 running = 2
@@ -175,13 +192,7 @@ while True:
             keys = pygame.key.get_pressed()    
             if keys[pygame.K_SPACE]:
                 running = 1
-                a_x = randint(420,1100)
-                a_y = randint(50,500)
-                target_x = randint(450,1100)
-                target_y = randint(50,500)
-                rect = Rect(a_x, a_y, 100, 100)
-                rect_target = Rect(target_x, target_y, 55, 55)
-                life_length = 1000
+                start()
 
 
     if running == 2:
@@ -190,25 +201,34 @@ while True:
                 screen_green = randint(25,225)
                 screen_blue = randint(25,255)
                 Screen_col = (screet_red, screen_green, screen_blue)
+        if control == 'scripted_ai':
+            if int(pygame.time.get_ticks() / 1000) % 5 == 0:
+                start()
+                running = 1
+
         screen.fill(Screen_col)
 
         
     elif running == 1:
-
+        
+        
         # controller
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_RIGHT]:
-            a_x += 2
+        if control == 'manual':
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_RIGHT]:
+                a_x += 2
 
-        if keys[pygame.K_LEFT]:
-            a_x -= 2
+            if keys[pygame.K_LEFT]:
+                a_x -= 2
 
-        if keys[pygame.K_UP]:
-            a_y -= 2
+            if keys[pygame.K_UP]:
+                a_y -= 2
 
-        if keys[pygame.K_DOWN]:
-            a_y += 2
+            if keys[pygame.K_DOWN]:
+                a_y += 2
 
+        elif control == 'scripted_ai':
+            ai_move()
 
         # goal
         if rect_target.contains(rect):
@@ -230,7 +250,7 @@ while True:
         neuron_stage = 'active'
         NN_draw(NN)
 
-        ai_move()
+        #ai_move()
 
 
         # epoch
