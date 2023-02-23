@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 from random import randint
 
+
 SIZE = 1200, 600
 
 RED = (255, 0, 0)
@@ -162,6 +163,7 @@ print(f'center={rect.center}')
 score = 0
 rewards = 0
 
+
 def start():
     global a_x
     global a_y
@@ -170,6 +172,7 @@ def start():
     global rect
     global rect_target
     global life_length
+    global running
     a_x = randint(420,1100)
     a_y = randint(50,500)
     target_x = randint(450,1100)
@@ -177,6 +180,7 @@ def start():
     rect = Rect(a_x, a_y, 100, 100)
     rect_target = Rect(target_x, target_y, 55, 55)
     life_length = 1000
+    running = 1
 
 control = 'scripted_ai'
 
@@ -191,20 +195,22 @@ while True:
         if running == 2:
             keys = pygame.key.get_pressed()    
             if keys[pygame.K_SPACE]:
-                running = 1
                 start()
 
 
     if running == 2:
+
+            
         if int(pygame.time.get_ticks() / 100) % 2 == 0:
                 screet_red = randint(25,225)
                 screen_green = randint(25,225)
                 screen_blue = randint(25,255)
                 Screen_col = (screet_red, screen_green, screen_blue)
+
         if control == 'scripted_ai':
-            if int(pygame.time.get_ticks() / 1000) % 5 == 0:
+            if int(pygame.time.get_ticks() / 1000) % 3 == 0:
                 start()
-                running = 1
+
 
         screen.fill(Screen_col)
 
@@ -237,6 +243,7 @@ while True:
             rewards += 10
             running = 2
             epoch += 1
+            
 
         #right side screen
         screen.fill(Screen_col)
@@ -250,8 +257,6 @@ while True:
         neuron_stage = 'active'
         NN_draw(NN)
 
-        #ai_move()
-
 
         # epoch
         epoch_text = font1.render('Epoch: ' + str(epoch) + ' ', True, 'white')
@@ -261,20 +266,20 @@ while True:
         #
         # limits
         if a_x > 1150 or a_x < 400 or a_y > 550 or a_y < 0:
-            score -= 1
             rewards -= 10
             running = 2
             epoch += 1
+
 
         # life lenght
         life_length -= ll
         life_length_count_text = font1.render('Life length remains: ' + str(life_length) + ' ', True, 'white')
         screen.blit(life_length_count_text, (410, 30))
         if life_length == 0:
-            score -= 1
             rewards -= 10
             running = 2
             epoch += 1
+
         
         # score
         score_text = font1.render('Score: ' + str(score) + ' ', True, 'white')
@@ -289,4 +294,3 @@ while True:
     clock.tick(60)
 
 
-pygame.quit()
