@@ -18,13 +18,6 @@ Screen_col = (screet_red, screen_green, screen_blue)
 pygame.font.init()
 font1 = pygame.font.SysFont('chalkduster.ttf', 24)
 
-# life lenght
-life_length = 1000
-ll = 1
-
-# epoch
-epoch = 0
-
 
 # scripted AI
 def ai_move():
@@ -38,18 +31,18 @@ def ai_move():
 
         if check == 1:
             if rect_target.centerx > rect.centerx:
-                a_x += 2
+                a_x += 2*game_speed
                 return a_x
             elif rect_target.centerx < rect.centerx:
-                a_x -= 2
+                a_x -= 2*game_speed
                 return a_x
             
         elif check == 2:
             if rect_target.centery > rect.centery:
-                a_y += 2
+                a_y += 2*game_speed
                 return a_y
             elif rect_target.centery < rect.centery:
-                a_y -= 2
+                a_y -= 2*game_speed
                 return a_y
 
     
@@ -159,9 +152,25 @@ print(f'x={rect.x}, y={rect.y}, w={rect.w}, h={rect.h}')
 print(f'left={rect.left}, top={rect.top}, right={rect.right}, bottom={rect.bottom}')
 print(f'center={rect.center}')
 
+#
+# PARAMETERS
+
 # scores
 score = 0
 rewards = 0
+game_speed = 1
+
+# life lenght
+life_length = 1000
+ll = 1
+
+# epoch
+epoch = 0
+
+# control
+control = 'scripted_ai'
+
+#
 
 
 def start():
@@ -182,7 +191,25 @@ def start():
     life_length = 1000
     running = 1
 
-control = 'scripted_ai'
+def fail():
+    global rewards
+    global running
+    global epoch
+    rewards -= 10
+    running = 2
+    epoch += 1
+
+def succeed():
+    global score
+    global rewards
+    global running
+    global epoch
+    score += 1
+    rewards += 10
+    running = 2
+    epoch += 1
+
+
 
 # while True
 running = 2
@@ -222,16 +249,16 @@ while True:
         if control == 'manual':
             keys = pygame.key.get_pressed()
             if keys[pygame.K_RIGHT]:
-                a_x += 2
+                a_x += 2*game_speed
 
             if keys[pygame.K_LEFT]:
-                a_x -= 2
+                a_x -= 2*game_speed
 
             if keys[pygame.K_UP]:
-                a_y -= 2
+                a_y -= 2*game_speed
 
             if keys[pygame.K_DOWN]:
-                a_y += 2
+                a_y += 2*game_speed
 
         elif control == 'scripted_ai':
             ai_move()
@@ -239,10 +266,7 @@ while True:
         # goal
         if rect_target.contains(rect):
             print('Target Achieved!')
-            score += 1
-            rewards += 10
-            running = 2
-            epoch += 1
+            succeed()
             
 
         #right side screen
@@ -266,9 +290,7 @@ while True:
         #
         # limits
         if a_x > 1150 or a_x < 400 or a_y > 550 or a_y < 0:
-            rewards -= 10
-            running = 2
-            epoch += 1
+            fail()
 
 
         # life lenght
@@ -276,9 +298,7 @@ while True:
         life_length_count_text = font1.render('Life length remains: ' + str(life_length) + ' ', True, 'white')
         screen.blit(life_length_count_text, (410, 30))
         if life_length == 0:
-            rewards -= 10
-            running = 2
-            epoch += 1
+            fail()
 
         
         # score
