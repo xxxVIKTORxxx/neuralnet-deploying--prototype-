@@ -80,73 +80,86 @@ data_state = pd.DataFrame()
 features = rg.random((4, 4))
 weights = rg.random((1, 4))[0]
 targets = np.random.choice([0,1], 4)
-data_state = pd.DataFrame(features, columns=["x0", "x1", "x2", "x3"])
+data_state = pd.DataFrame(features, columns=["X_val_right", "X_val_left", "Y_val_down", "Y_val_up"])
 data_state["targets"] = targets
 
-preds_ = [1,0,0,0]
+preds_ = [[1,0,0,0]]
 
 
 def current_state():
 
     global data_state
+
         # current_state
     if rect_target.centerx > rect.centerx:
         X_targ_right = 1
-        X_val = (rect.centerx - rect_target.centerx + 400) / 800
+        X_val_right = (rect.centerx - rect_target.centerx + 400) / 800
     else:
         X_targ_right = 0
+        X_val_right = 0
 
     if rect_target.centerx < rect.centerx:
         X_targ_left = 1
-        X_val = (rect_target.centerx - rect.centerx + 400) / 800
+        X_val_left = (rect_target.centerx - rect.centerx + 400) / 800
     else:
         X_targ_left = 0
+        X_val_left = 0
 
     if rect_target.centerx == rect.centerx:
-        X_val = 0
+        X_val_right = 0
+        X_val_left = 0
 
 
     if rect_target.centery > rect.centery:
         Y_targ_down = 1
-        Y_val = (rect.centery - rect_target.centery + 400) / 800
+        Y_val_down = (rect.centery - rect_target.centery + 300) / 600
     else:
         Y_targ_down = 0
+        Y_val_down = 0
 
     if rect_target.centery < rect.centery:
         Y_targ_up = 1
-        Y_val = (rect_target.centery - rect.centery + 400) / 800
+        Y_val_up = (rect_target.centery - rect.centery + 300) / 600
     else:
         Y_targ_up = 0
+        Y_val_up = 0
 
     if rect_target.centery == rect.centery:
-        Y_val = 0
+        Y_val_down = 0
+        Y_val_up = 0
 
-    print(X_val, Y_val)
+    print('state within: ', data_state)
 
-    if a_x >= 1100 or a_x < 450:
-        X_dang = 1
+    """
+    if a_x >= 1100 or a_x <= 450:
+        X_dang = 1.0
     else:
         X_dang = 0
 
-    if a_y >= 500 or a_y < 50:
-        Y_dang = 1
+    if a_y >= 500 or a_y <= 50:
+        Y_dang = 1.0
     else:
         Y_dang = 0
+    """
 
-    current_state = [X_val, Y_val, X_dang, Y_dang]
+    current_state = [X_val_right, X_val_left, Y_val_down, Y_val_up]
 
-    data_state.append(current_state)
+    data_state = data_state.append(pd.Series(current_state, index=data_state.columns[:len(current_state)]), ignore_index=True)
 
+    if data_state.shape[1] >= batch_size:
+        # data_state = data_state.tail(4)
+        data_state['targets'].iloc[-4:] = [X_targ_right, X_targ_left, Y_targ_down, Y_targ_up]
 
-    data_state["targets"] = [X_targ_left, X_targ_right, Y_targ_down, Y_targ_up]
-    return data_state
+        print('state: \n', data_state)
+        return data_state
 
-bias = 0.5
-l_rate = 0.1
+bias = 1.0
+l_rate = 0.01
 epoch_loss = []
 
 
-def get_weighted_sum(feature, weights, bias):
+def get_weighted_sum(feature, bias):
+    global weights
     return np.dot(feature, weights) + bias
 
 def sigmoid(w_sum):
@@ -155,63 +168,75 @@ def sigmoid(w_sum):
 def cross_entropy(target, prediction):
     return -(target*np.log10(prediction) + (1-target)*np.log10(1-prediction))
 
-def update_weights(weights, l_rate, target, prediction, feature):
+def update_weights(l_rate, target, prediction, feature):
+    global weights
     new_weights = []
     for x, w in zip(feature, weights):
         new_w = w + l_rate*(target-prediction)*x
         new_weights.append(new_w)
     return new_weights
 
-def update_bias(bias, l_rate, target, prediction):
+def update_bias(l_rate, target, prediction):
+    global bias
     return bias + l_rate*(target-prediction)
 
-def train_model(data_state, weights, bias, l_rate):
+def train_model(data_state, bias, l_rate):
     global preds_
     global average_loss
+    global preds_block
+    global features
+    global weights
+
     current_state()
-    # for e in range(epochs):
+
     individual_loss = []
-    for i in range(len(data_state)):
-        feature = data_state.loc[i][:-1]
-        target = data_state.loc[i][-1]
+    for i in range(1,5):
+        feature = data_state.iloc[-i][:-1]
+        target = data_state.iloc[-i][-1]
         print('feature: \n', feature)
         print('target: \n', target)
-        w_sum = get_weighted_sum(feature, weights, bias)
+        w_sum = get_weighted_sum(feature, bias)
         prediction = sigmoid(w_sum)
-
-        preds_.append(prediction)
+        
+        if len(preds_block) < 4:
+            preds_block.append(prediction)
+        else:
+            preds_.append(preds_block)
+            preds_block = []
         print('pred: ', preds_)
-        if len(preds_)>=8:
-            preds_ = preds_[-4:-1]
+        
+        if len(preds_)>=3:
+            preds_ = preds_[-2:-1]
 
         loss = cross_entropy(target, prediction)
         print('LOSS: ', loss)
 
         individual_loss.append(loss)
         # gradient descent
-        weights = update_weights(weights, l_rate, target, prediction, feature)
-        bias = update_bias(bias, l_rate, target, prediction)
+        weights = update_weights(l_rate, target, prediction, feature)
+        bias = update_bias(l_rate, target, prediction)
 
 
     average_loss = sum(individual_loss)/len(individual_loss)
     epoch_loss.append(average_loss)
     print("**************************")
-    print(average_loss)
+    print('Epoch Loss: ', average_loss)
+
 
 # NN based moving
 def NN_move():
+    
+    if preds_[-1][-1] == max(preds_[-1]):
+        move_up() 
 
-    if preds_[-1] == max(preds_[-4:-1]):
-        move_right()
-
-    elif preds_[-2] == max(preds_[-4:-1]):
-        move_left()
-
-    elif preds_[-3] == max(preds_[-4:-1]):
+    elif preds_[-1][-2] == max(preds_[-1]):
         move_down()
 
-    elif preds_[-4] == max(preds_[-4:-1]):
-        move_up()  
+    elif preds_[-1][-3] == max(preds_[-1]):
+        move_left()
+
+    elif preds_[-1][-4] == max(preds_[-1]):
+        move_right()  
     
 
 
@@ -384,6 +409,7 @@ control = 'NN_based'
 # presetup
 average_loss = 0
 loss = 1
+preds_block = []
 
 
 def start():
@@ -503,7 +529,7 @@ def SimpleGame():
             elif control == 'NN_based':
                 NN_move()
             
-                train_model(data_state, weights, bias, l_rate)
+                train_model(data_state, bias, l_rate)
 
 
             # goal
@@ -551,7 +577,7 @@ def SimpleGame():
             screen.blit(score_text, (410, 45))
 
             # loss
-            LOSS_text = font1.render('AVG LOSS: ' + str(average_loss) + ' ', True, 'white')
+            LOSS_text = font1.render('AVG LOSS: ' + str(round(average_loss, 5)) + ' ', True, 'white')
             screen.blit(LOSS_text, (410, 60))
 
 
