@@ -161,7 +161,7 @@ def current_state():
 
     data_state = data_state.append(pd.Series(current_state, index=data_state.columns[:len(current_state)]), ignore_index=True)
 
-    if data_state.shape[1] >= batch_size:
+    if data_state.shape[0] >= batch_size:
         data_state = data_state.tail(4)
 #        data_state['targets'].iloc[-4:] = [X_targ_right, X_targ_left, Y_targ_down, Y_targ_up]
 
@@ -169,7 +169,7 @@ def current_state():
     print('targ_state: ', target_state)
     target_state = target_state.append(pd.Series(curr_target, index=target_state.columns[:len(curr_target)]), ignore_index=True)
 
-    if target_state.shape[1] >= batch_size:
+    if target_state.shape[0] >= batch_size:
         target_state = target_state.tail(4)
 
     print('state: \n', data_state)
@@ -276,7 +276,7 @@ def train_keras():
     global evaluation
 
     ds_train, ds_test, ts_train, ts_test = train_test_split(data_state, target_state, test_size=0.25, shuffle=True)
-    model.fit(ds_train, ts_train, epochs=1, batch_size=20, verbose=1, validation_split=0.2)
+    model.fit(ds_train, ts_train, epochs=1, batch_size=4, verbose=1, validation_split=0.2)
 
     test_results = model.evaluate(ds_test, ts_test, verbose=1)
     evaluation.append(test_results)
