@@ -8,9 +8,12 @@ matplotlib.use("Agg")
 import matplotlib.backends.backend_agg as agg
 import pylab
 
+from keras.models import Sequential
+from keras.layers import Dense, Dropout
+from keras.losses import MeanSquaredError
+from keras.optimizers import Adam
 
-#from simple_game_play_NN_agent import Agent
-
+from sklearn.model_selection import train_test_split
 
 
 SIZE = 1200, 600
@@ -32,22 +35,22 @@ font1 = pygame.font.SysFont('arial.ttf', 24)
 # movements
 def move_up():
     global a_y
-    a_y -= 2*game_speed
+    a_y -= 2*game_speed*rect_speed
     return a_y
     
 def move_down():
     global a_y
-    a_y += 2*game_speed
+    a_y += 2*game_speed*rect_speed
     return a_y
 
 def move_left():
     global a_x
-    a_x -= 2*game_speed
+    a_x -= 2*game_speed*rect_speed
     return a_x
 
 def move_right():
     global a_x
-    a_x += 2*game_speed
+    a_x += 2*game_speed*rect_speed
     return a_x
 
 
@@ -78,10 +81,12 @@ rg = np.random.default_rng()
 batch_size = 12
 data_state = pd.DataFrame()
 
-features = rg.random((1, 8))
+features = rg.random((1, 9))
 weights = rg.random((1, 4))[0]
-targets = np.random.choice([0,1], 4)
-data_state = pd.DataFrame(features, columns=["X_val_right", "X_val_left", "Y_val_down", "Y_val_up", "X_dang_right", "X_dang_left", "Y_dang_down", "Y_dang_up"])
+targets = np.random.choice([0,1], 5)
+data_state = pd.DataFrame(features, columns=[
+    "X_val_right", "X_val_left", "Y_val_down", "Y_val_up", "X_dang_right", "X_dang_left", "Y_dang_down", "Y_dang_up", "rect_speed"
+    ])
 # data_state["targets"] = targets
 
 target_state = pd.DataFrame(targets).T
@@ -94,6 +99,7 @@ def current_state():
 
     global data_state
     global target_state
+    global rect_speed
 
         # current_state
     if rect_target.centerx > rect.centerx:
@@ -133,7 +139,13 @@ def current_state():
         Y_val_down = 0
         Y_val_up = 0
 
-    print('state within: ', data_state)
+    if rect_target.center == rect.center:
+        X_val_right = 1.0
+        X_val_left = 1.0
+        Y_val_down = 1.0
+        Y_val_up = 1.0
+
+    # print('state within: ', data_state)
 
 
     if a_x >= 1100:
@@ -157,7 +169,7 @@ def current_state():
         Y_dang_up = 0
 
 
-    current_state = [X_val_right, X_val_left, Y_val_down, Y_val_up, X_dang_right, X_dang_left, Y_dang_down, Y_dang_up]
+    current_state = [X_val_right, X_val_left, Y_val_down, Y_val_up, X_dang_right, X_dang_left, Y_dang_down, Y_dang_up, rect_speed/10]
 
     data_state = data_state.append(pd.Series(current_state, index=data_state.columns[:len(current_state)]), ignore_index=True)
 
@@ -165,7 +177,26 @@ def current_state():
         data_state = data_state.tail(4)
 #        data_state['targets'].iloc[-4:] = [X_targ_right, X_targ_left, Y_targ_down, Y_targ_up]
 
-    curr_target = [X_targ_right, X_targ_left, Y_targ_down, Y_targ_up]
+    
+
+    if X_val_right > X_val_left:
+        X_spd = X_val_right
+    elif X_val_right < X_val_left:
+        X_spd = X_val_left
+    else:
+        X_spd = 1.0
+    
+    if Y_val_down > Y_val_up:
+        Y_spd = Y_val_down
+    elif Y_val_down < Y_val_up:
+        Y_spd = Y_val_up
+    else:
+        Y_spd = 1.0
+
+    targ_speed = 1.0 - ((X_spd + Y_spd)/2)
+    
+
+    curr_target = [X_targ_right, X_targ_left, Y_targ_down, Y_targ_up, targ_speed]
     print('targ_state: ', target_state)
     target_state = target_state.append(pd.Series(curr_target, index=target_state.columns[:len(curr_target)]), ignore_index=True)
 
@@ -176,94 +207,12 @@ def current_state():
     return data_state, target_state
 
 
-input_n = 8
-hiden_n = 24
-output_n = 4
-
-
-bias = 1.0
-l_rate = 0.1
-epoch_loss = []
-
-
-###
-def get_weighted_sum(feature, bias):
-    global weights
-    return np.dot(feature, weights) + bias
-
-def sigmoid(w_sum):
-    return 1/(1+np.exp(-w_sum))
-
-def cross_entropy(target, prediction):
-    return -(target*np.log10(prediction) + (1-target)*np.log10(1-prediction))
-
-def update_weights(l_rate, target, prediction, feature):
-    global weights
-    new_weights = []
-    for x, w in zip(feature, weights):
-        new_w = w + l_rate*(target-prediction)*x
-        new_weights.append(new_w)
-    return new_weights
-
-def update_bias(l_rate, target, prediction):
-    global bias
-    return bias + l_rate*(target-prediction)
-
-def train_model(data_state, bias, l_rate):
-    global preds_
-    global average_loss
-    global preds_block
-    global features
-    global weights
-
-    current_state()
-
-    individual_loss = []
-    for i in range(1,5):
-        feature = data_state.iloc[-i][:-1]
-        target = data_state.iloc[-i][-1]
-        print('feature: \n', feature)
-        print('target: \n', target)
-        w_sum = get_weighted_sum(feature, bias)
-        prediction = sigmoid(w_sum)
-        
-        if len(preds_block) < 4:
-            preds_block.append(prediction)
-        else:
-            preds_.append(preds_block)
-            preds_block = []
-        print('pred: ', preds_)
-        
-        if len(preds_)>=3:
-            preds_ = preds_[-2:-1]
-
-        loss = cross_entropy(target, prediction)
-        print('LOSS: ', loss)
-
-        individual_loss.append(loss)
-        # gradient descent
-        weights = update_weights(l_rate, target, prediction, feature)
-        bias = update_bias(l_rate, target, prediction)
-
-
-    average_loss = sum(individual_loss)/len(individual_loss)
-    epoch_loss.append(average_loss)
-    print("**************************")
-    print('Epoch Loss: ', average_loss)
-###
-
-
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.losses import MeanSquaredError
-from keras.optimizers import Adam
-
-from sklearn.model_selection import train_test_split
-
 model = Sequential()
-model.add(Dense(8, activation='relu', kernel_initializer='he_uniform'))
-model.add(Dense(24, activation='relu', kernel_initializer='he_uniform'))
-model.add(Dense(4, activation='softmax'))
+model.add(Dense(9, activation='relu', kernel_initializer='he_uniform'))
+model.add(Dense(15, activation='relu', kernel_initializer='he_uniform'))
+model.add(Dropout(0.2))
+model.add(Dense(15, activation='relu', kernel_initializer='he_uniform'))
+model.add(Dense(5, activation='softmax'))
 
 loss_function_used = MeanSquaredError()
 
@@ -276,6 +225,7 @@ def train_keras():
     global evaluation
 
     ds_train, ds_test, ts_train, ts_test = train_test_split(data_state, target_state, test_size=0.25, shuffle=True)
+
     model.fit(ds_train, ts_train, epochs=1, batch_size=4, verbose=1, validation_split=0.2)
 
     test_results = model.evaluate(ds_test, ts_test, verbose=1)
@@ -296,26 +246,41 @@ def keras_pred():
 
 # NN based moving
 def NN_move():
+    global rect_speed
+    axis_check = randint(1,2)
+    if axis_check == 1:
+        if y_pred[-1][-2] == max(y_pred[-1][-3:-1]):
+            move_up() 
+
+        elif y_pred[-1][-3] == max(y_pred[-1][-3:-1]):
+            move_down()
     
-    if y_pred[-1][-1] == max(y_pred[-1]):
-        move_up() 
+    elif axis_check == 2:
 
-    elif y_pred[-1][-2] == max(y_pred[-1]):
-        move_down()
+        if y_pred[-1][-4] == max(y_pred[-1][-5:-3]):
+            move_left()
 
-    elif y_pred[-1][-3] == max(y_pred[-1]):
-        move_left()
+        elif y_pred[-1][-5] == max(y_pred[-1][-5:-3]):
+            move_right()  
 
-    elif y_pred[-1][-4] == max(y_pred[-1]):
-        move_right()  
-    
+    if y_pred[-1][-1] <= 0.1:
+        rect_speed = 0.5
+    elif y_pred[-1][-1] > 0.1 and y_pred[-1][-1] <= 0.2:
+        rect_speed = 1.0
+    elif y_pred[-1][-1] > 0.2 and y_pred[-1][-1] <= 0.3:
+        rect_speed = 2.0
+    elif y_pred[-1][-1] > 0.4 and y_pred[-1][-1] <= 0.5:
+        rect_speed = 3.0
+    elif y_pred[-1][-1] > 0.5:
+        rect_speed = 4.0
+
 
 
 # Neuralnet drawing definition
 def NN_draw(NN):
     c_x = 0
-    c_y = 50
-    y_space = 500
+    c_y = 150
+    y_space = 425
     x_space = 375
     distance_y = y_space / len(NN)
 
@@ -347,11 +312,11 @@ def NN_draw(NN):
         if int(pygame.time.get_ticks() / 100) % 3 == 0:
             rand_line_col = randint(0,1)
         if rand_line_col == 0:
-            line_color = 'darkblue'
+            line_color = 'darkgreen'
         elif rand_line_col ==1:
             line_color = 'yellow'
     elif line == 'inactive':
-        line_color = 'darkblue'
+        line_color = 'darkgreen'
 
     #lines drawing
     i=0
@@ -381,10 +346,11 @@ def NN_draw(NN):
 
 
 # neuralnet example to be drawn
-layer_in = [n for n in range(0,8)]
-layer_h1 = [n for n in range(0,24)]
-layer_out = [n for n in range(0,4)]
-NN = layer_in,layer_h1,layer_out       
+layer_in = [n for n in range(0,9)]
+layer_h1 = [n for n in range(0,15)]
+layer_h3 = [n for n in range(0,15)]
+layer_out = [n for n in range(0,5)]
+NN = layer_in,layer_h1,layer_h3,layer_out       
 neuron_stage = 'inactive'
 
 
@@ -397,8 +363,8 @@ def draw_chart(size):
 
         # df = pd.DataFrame(epoch_loss)
         df = pd.DataFrame(evaluation)
-        df_plot = df.plot(kind="line", grid=True, ax=ax, title='Accuracy / Loss', xlabel='Score', color = ["red", "orange"])
-        ax.get_legend().remove()
+        df_plot = df.iloc[:,0].plot(kind="line", grid=True, ax=ax, title='Loss', xlabel='Score', color = "red")
+        # ax.get_legend().remove()
 
         canvas.draw()
         raw_data = renderer.tostring_rgb()
@@ -462,6 +428,7 @@ score = 0
 score_ = []
 rewards = 0
 game_speed = 1
+rect_speed = 1.0
 
 # life lenght
 _life_length = 500
@@ -493,7 +460,7 @@ def start():
     global rect_target
     global life_length
     global running
-    global evaluation
+
     a_x = randint(420,1100)
     a_y = randint(50,500)
     target_x = randint(450,1100)
@@ -502,7 +469,7 @@ def start():
     rect_target = Rect(target_x, target_y, 55, 55)
     life_length = _life_length
     running = 1
-    evaluation = []
+
 
 def fail():
     global rewards
@@ -640,20 +607,20 @@ def SimpleGame():
             # TEXTS
 
             # epoch
-            epoch_text = font1.render('Epoch: ' + str(epoch) + ' ', True, 'white')
+            epoch_text = font1.render('Try: ' + str(epoch) + ' ', True, 'white')
             screen.blit(epoch_text, (410, 15))
 
             # life lenght
             life_length -= ll
             life_length_count_text = font1.render('Life length remains: ' + str(life_length) + ' ', True, 'white')
-            screen.blit(life_length_count_text, (410, 30))
+            screen.blit(life_length_count_text, (410, 45))
             if life_length == 0:
                 fail()
 
             
             # score
             score_text = font1.render('Score: ' + str(score) + ' ', True, 'white')
-            screen.blit(score_text, (410, 45))
+            screen.blit(score_text, (410, 30))
 
             # loss
             if len(evaluation) > 1:
@@ -667,6 +634,9 @@ def SimpleGame():
             else:
                 Acc_text = font1.render('Accuracy: ', True, 'white')
             screen.blit(Acc_text, (410, 75))
+
+            speed_text = font1.render('Speed: ' + str(rect_speed) + ' ', True, 'white')
+            screen.blit(speed_text, (410, 90))
 
 
         pygame.display.update()
