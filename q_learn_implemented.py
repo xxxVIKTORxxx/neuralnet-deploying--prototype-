@@ -224,6 +224,7 @@ loss_function_used = MeanSquaredError()
 model.compile(loss=loss_function_used, optimizer=Adam(lr=0.01), metrics=['accuracy'])
 
 evaluation = []
+try_loss = []
 
 def train_keras():
     global data_state
@@ -236,6 +237,7 @@ def train_keras():
     model.fit(ds_train, ts_train, epochs=1, batch_size=4, verbose=1, validation_split=0.2)
 
     test_results = model.evaluate(ds_test, ts_test, verbose=1)
+    try_loss.append(test_results[0])
     evaluation.append(test_results)
     print(f'Test results - Loss: {test_results[0]} - Accuracy: {test_results[1]*100}%')
 
@@ -366,6 +368,7 @@ neuron_stage = 'inactive'
 
 
 # draw chart
+neuron_stage = 'active'
 chart = True
 def draw_chart(size):
     global surf
@@ -373,9 +376,15 @@ def draw_chart(size):
         #for score in score_:
 
         # df = pd.DataFrame(epoch_loss)
-        df = pd.DataFrame(evaluation)
-        df_plot = df.iloc[:,0].plot(kind="line", grid=True, ax=ax, title='Loss', xlabel='Score', color = "red")
-        # ax.get_legend().remove()
+        df = pd.DataFrame(avg_loss)
+        df2 = pd.DataFrame(scores)
+        ax.cla()
+        df_plot = df.plot(kind="line", grid=True, ax=ax, color = "red")
+        df2_plot = df2.plot(kind="line", grid=True, ax=ax, color = "green")
+        ax.set_title('Score / AVG Loss').set_color('white')
+        ax.set_xlabel('Try')
+        ax.xaxis.label.set_color('white')
+        ax.get_legend().remove()
 
         canvas.draw()
         raw_data = renderer.tostring_rgb()
@@ -393,12 +402,13 @@ fig = pylab.figure(figsize=[3.8, 1.8], # Inches
                    dpi=100,        # 100 dots per inch, so the resulting buffer is 400x400 pixels
                    )
 ax = fig.gca()
-life_length_ = [0]
-df = pd.DataFrame(life_length_)
-df_plot = df.plot(kind="line", grid=True, ax=ax, title='Accuracy / Loss', xlabel='Score', color = [col/255 for col in AGENT_COL])
+
+df = pd.DataFrame([100], [0])
+df_plot = df.plot(kind="line", grid=True, ax=ax, title='Score / AVG Loss', xlabel='Try', color = ["red", "green"])
 ax.get_legend().remove()
 ax.set_facecolor('black')
 ax.title.set_color('white')
+ax.xaxis.label.set_color('white')
 ax.tick_params(axis='x', colors='white')
 ax.tick_params(axis='y', colors='white')
 fig.patch.set_facecolor('black')
@@ -450,6 +460,11 @@ ll = 1
 epoch = 1
 # record list
 record = [0]
+scores = [0]
+avg_loss = [1]
+
+#   policy
+policy = 0.9
 
 #
 # MODE OPTION
@@ -490,15 +505,18 @@ def fail():
     global epoch
     global score
     global model
+    global evaluation
+    global try_loss
+    global record
 
     # score_.append(score)
     rewards -= 10
     running = 2
     epoch += 1
-    draw_chart(size)
 
     # print(model.summary())
 
+    record = [rec * policy for rec in record]
 
     if score >= max(record):
         model.save("record_model")
@@ -509,9 +527,15 @@ def fail():
     else:
         pass
 
+    avg_loss.append(np.mean(try_loss))
+    try_loss = []
+    print('AVG LOSS: ', avg_loss)
 
     record.append(score)
+    scores.append(score)
     score = 0
+
+    draw_chart(size)
 
 
 
@@ -535,7 +559,7 @@ def succeed():
     target_y = randint(50,500)
     rect_target = Rect(target_x, target_y, 55, 55)
     life_length = _life_length
-    draw_chart(size)
+    # draw_chart(size)
 
 
 
@@ -624,7 +648,7 @@ def SimpleGame():
             pygame.draw.rect(screen, 'black', NN_screen)
             
             # left side screen
-            neuron_stage = 'active'
+            # neuron_stage = 'active'
             NN_draw(NN)
             
             #draw_chart(size)
@@ -653,7 +677,7 @@ def SimpleGame():
             screen.blit(score_text, (410, 45))
 
             # record
-            record_text = font1.render('Record: ' + str(max(record)) + ' ', True, 'white')
+            record_text = font1.render('Record: ' + str(max(scores)) + ' ', True, 'white')
             screen.blit(record_text, (410, 30))
 
             # loss
