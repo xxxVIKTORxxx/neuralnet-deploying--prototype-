@@ -276,13 +276,13 @@ def NN_move():
         elif y_pred[-1][-5] == max(y_pred[-1][-5:-3]):
             move_right()  
 
-    if y_pred[-1][-1] <= 0.1:
+    if y_pred[-1][-1] <= 0.05:
         rect_speed = 0.5
-    elif y_pred[-1][-1] > 0.1 and y_pred[-1][-1] <= 0.2:
+    elif y_pred[-1][-1] > 0.05 and y_pred[-1][-1] <= 0.1:
         rect_speed = 1.0
-    elif y_pred[-1][-1] > 0.2 and y_pred[-1][-1] <= 0.3:
+    elif y_pred[-1][-1] > 0.1 and y_pred[-1][-1] <= 0.25:
         rect_speed = 2.0
-    elif y_pred[-1][-1] > 0.4 and y_pred[-1][-1] <= 0.5:
+    elif y_pred[-1][-1] > 0.25 and y_pred[-1][-1] <= 0.5:
         rect_speed = 3.0
     elif y_pred[-1][-1] > 0.5:
         rect_speed = 4.0
