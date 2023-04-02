@@ -3,9 +3,9 @@ Experimentations with NN deploying
 
 >>> <b>[In Development]</b>
 
-* Function for neuralnet variable drawing created
-* Scripted AI with AI control added
-* Q-learning implemented based on the reloading of a best-scores model
+* Function for neuralnet's variables drawing created
+* Scripted AI with AI control added (with NN control added too)
+* Q-learning implemented based on the reloading of a best-scored model
 * Charts drawing was realised
 ___
 In plans:
