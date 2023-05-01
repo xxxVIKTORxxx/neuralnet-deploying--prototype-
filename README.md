@@ -1,5 +1,6 @@
 # neuralnet-deploying-[prototype]
 Experimentations with NN deploying
+
 Playlist of records on YouTube: https://www.youtube.com/playlist?list=PLI_Ss2fLP8Q4J79m5XUQAzIxuhyrpp9vr
 
 >>> <b>[In Development]</b>
