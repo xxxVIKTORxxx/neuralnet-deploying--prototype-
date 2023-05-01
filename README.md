@@ -11,7 +11,7 @@ Playlist of records on YouTube: https://www.youtube.com/playlist?list=PLI_Ss2fLP
 * Charts drawing was realised
 ___
 In plans:
-* Connect it with the drawn neuralnet for its working visualisation [if there is any sense for that]
+* <s>Connect it with the drawn neuralnet for its working visualisation [if there is any sense for that]</s>
 * [Optional] Make a game more challengeable
 
 ![image](https://user-images.githubusercontent.com/109345462/228032847-b5eb9ea7-18dc-42d7-829e-2e4d102253a5.png)
