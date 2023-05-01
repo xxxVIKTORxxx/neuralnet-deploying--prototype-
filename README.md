@@ -1,5 +1,6 @@
 # neuralnet-deploying-[prototype]
 Experimentations with NN deploying
+Playlist of records on YouTube: https://www.youtube.com/playlist?list=PLI_Ss2fLP8Q4J79m5XUQAzIxuhyrpp9vr
 
 >>> <b>[In Development]</b>
 
@@ -7,8 +8,6 @@ Experimentations with NN deploying
 * Scripted AI with AI control added (with NN control added too)
 * Q-learning implemented based on the reloading of a best-scored model
 * Charts drawing was realised
-
-https://www.youtube.com/playlist?list=PLI_Ss2fLP8Q4J79m5XUQAzIxuhyrpp9vr
 ___
 In plans:
 * Connect it with the drawn neuralnet for its working visualisation [if there is any sense for that]
